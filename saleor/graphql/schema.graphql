@@ -3720,6 +3720,12 @@ type Mutation {
   webhookCreate(input: WebhookCreateInput!): WebhookCreate
   webhookDelete(id: ID!): WebhookDelete
   webhookUpdate(id: ID!, input: WebhookUpdateInput!): WebhookUpdate
+  createVendorwarehouse(input: VendorWarehouseInput!): VendorWarehouseCreate
+  updateVendorwarehouse(id: ID!, input: VendorWarehouseInput!): VendorWarehouseUpdate
+  deleteVendorwarehouse(id: ID!): VendorWarehouseDelete
+  createVendor(input: VendorCreateInput!): VendorCreate
+  deleteVendor(id: ID!): VendorDelete
+  updateVendor(id: ID!, input: VendorCreateInput!): VendorUpdate
   createWarehouse(input: WarehouseCreateInput!): WarehouseCreate
   updateWarehouse(id: ID!, input: WarehouseUpdateInput!): WarehouseUpdate
   deleteWarehouse(id: ID!): WarehouseDelete
@@ -4027,7 +4033,7 @@ type Order implements Node & ObjectWithMetadata {
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   fulfillments: [Fulfillment]!
-  lines: [OrderLine]!
+  lines(vendor: ID): [OrderLine]!
   actions: [OrderAction]!
   availableShippingMethods: [ShippingMethod]
   availableCollectionPoints: [Warehouse!]!
@@ -4330,6 +4336,7 @@ input OrderFilterInput {
   search: String
   metadata: [MetadataFilter]
   channels: [ID]
+  vendor: [ID]
 }
 
 type OrderFulfill {
@@ -4980,6 +4987,7 @@ enum PermissionEnum {
   MANAGE_SETTINGS
   MANAGE_TRANSLATIONS
   MANAGE_CHECKOUTS
+  MANAGE_VENDOR
 }
 
 type PermissionGroupCreate {
@@ -5360,6 +5368,7 @@ input ProductFilterInput {
   price: PriceRangeInput
   minimalPrice: PriceRangeInput
   productTypes: [ID]
+  vendor: [ID]
   giftCard: Boolean
   ids: [ID]
   hasPreorderedVariants: Boolean
@@ -5824,6 +5833,10 @@ type Query {
   webhookSamplePayload(eventType: WebhookSampleEventTypeEnum!): JSONString
   warehouse(id: ID!): Warehouse
   warehouses(filter: WarehouseFilterInput, sortBy: WarehouseSortingInput, before: String, after: String, first: Int, last: Int): WarehouseCountableConnection
+  vendorWarehouse(id: ID!): VendorWarehouse
+  vendorWarehouses(filter: VendorWarehouseFilterInput, before: String, after: String, first: Int, last: Int): VendorWarehouseCountableConnection
+  vendor(id: ID!): Vendor
+  vendors(filter: VendorFilterInput, sortBy: VendorSortingInput, before: String, after: String, first: Int, last: Int): VendorCountableConnection
   translations(kind: TranslatableKinds!, before: String, after: String, first: Int, last: Int): TranslatableItemConnection
   translation(id: ID!, kind: TranslatableKinds!): TranslatableItem
   stock(id: ID!): Stock
@@ -6857,6 +6870,120 @@ type VariantPricingInfo {
   price: TaxedMoney
   priceUndiscounted: TaxedMoney
   priceLocalCurrency: TaxedMoney
+}
+
+type Vendor implements Node {
+  id: ID!
+  user: User!
+  shopName: String!
+  slug: String!
+}
+
+type VendorCountableConnection {
+  pageInfo: PageInfo!
+  edges: [VendorCountableEdge!]!
+  totalCount: Int
+}
+
+type VendorCountableEdge {
+  node: Vendor!
+  cursor: String!
+}
+
+type VendorCreate {
+  vendorErrors: [VendorError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [VendorError!]!
+  vendor: Vendor
+}
+
+input VendorCreateInput {
+  slug: String
+  shopName: String
+  user: ID
+}
+
+type VendorDelete {
+  vendorErrors: [VendorError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [VendorError!]!
+  vendor: Vendor
+}
+
+type VendorError {
+  field: String
+  message: String
+  code: VendorErrorCode!
+}
+
+enum VendorErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+}
+
+input VendorFilterInput {
+  search: String
+  ids: [ID]
+}
+
+enum VendorSortField {
+  NAME
+}
+
+input VendorSortingInput {
+  direction: OrderDirection!
+  field: VendorSortField!
+}
+
+type VendorUpdate {
+  vendorErrors: [VendorError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [VendorError!]!
+  vendor: Vendor
+}
+
+type VendorWarehouse implements Node {
+  id: ID!
+  vendorId: Vendor!
+  warehouse: Warehouse
+}
+
+type VendorWarehouseCountableConnection {
+  pageInfo: PageInfo!
+  edges: [VendorWarehouseCountableEdge!]!
+  totalCount: Int
+}
+
+type VendorWarehouseCountableEdge {
+  node: VendorWarehouse!
+  cursor: String!
+}
+
+type VendorWarehouseCreate {
+  vendorErrors: [VendorError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [VendorError!]!
+  vendorWarehouse: VendorWarehouse
+}
+
+type VendorWarehouseDelete {
+  vendorErrors: [VendorError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [VendorError!]!
+  vendorWarehouse: VendorWarehouse
+}
+
+input VendorWarehouseFilterInput {
+  search: String
+}
+
+input VendorWarehouseInput {
+  vendorId: ID
+  warehouse: ID
+}
+
+type VendorWarehouseUpdate {
+  vendorErrors: [VendorError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [VendorError!]!
+  vendorWarehouse: VendorWarehouse
 }
 
 type VerifyToken {
